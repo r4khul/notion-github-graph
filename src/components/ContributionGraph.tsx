@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { format, parseISO, getDay } from 'date-fns';
 
 // --- Types ---
@@ -22,8 +23,7 @@ interface ContributionGraphProps {
 }
 
 interface TooltipData {
-  x: number;
-  y: number;
+  rect: DOMRect;
   data: Contribution;
 }
 
@@ -227,15 +227,9 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ username }
     e.stopPropagation();
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRef.current) return;
     
-    if (!containerRect) return;
-    
-    // Calculate position: center of tile, top of tile
-    const x = rect.left + rect.width / 2;
-    const y = rect.top;
-    
-    setHovered({ x, y, data: day });
+    setHovered({ rect, data: day });
     setActiveTouch(day.date);
   }, []);
 
@@ -547,10 +541,8 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ username }
       <AnimatePresence>
         {hovered && (
           <Tooltip 
-            ref={tooltipRef}
             day={hovered.data} 
-            x={hovered.x} 
-            y={hovered.y}
+            targetRect={hovered.rect}
             isMobile={isMobile}
           />
         )}
@@ -571,92 +563,103 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ username }
 
 interface TooltipProps {
   day: Contribution;
-  x: number;
-  y: number;
+  targetRect: DOMRect;
   isMobile: boolean;
 }
 
-const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(({ day, x, y, isMobile }, ref) => {
+const Tooltip: React.FC<TooltipProps> = ({ day, targetRect, isMobile }) => {
+  const [coords, setCoords] = useState<{ top: number; left: number; arrowOffset: number; flipped: boolean } | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
   const dateStr = format(parseISO(day.date), 'MMM d, yyyy');
   const countStr = day.count === 0 ? 'No contributions' : `${day.count} ${day.count === 1 ? 'contribution' : 'contributions'}`;
-  const [tooltipPos, setTooltipPos] = useState({ x, y, adjustedX: x });
-  const internalRef = useRef<HTMLDivElement>(null);
-  
-  // Use forwarded ref or internal ref
-  const tooltipElement = (ref as React.RefObject<HTMLDivElement>) || internalRef;
 
-  // Adjust tooltip position to stay within viewport
-  useEffect(() => {
-    setTooltipPos({ x, y, adjustedX: x });
+  // Production-grade positioning logic: useLayoutEffect to prevent flash of unstyled content/position
+  React.useLayoutEffect(() => {
+    if (!tooltipRef.current) return;
+
+    const tooltip = tooltipRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const padding = 12;
+
+    // Ideal position: Centered above the tile
+    let left = targetRect.left + targetRect.width / 2;
+    let arrowOffset = 0;
     
-    // After render, check if tooltip is clipped and adjust
-    requestAnimationFrame(() => {
-      if (tooltipElement.current) {
-        const rect = tooltipElement.current.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const padding = 8;
-        
-        let adjustedX = x;
-        
-        // Check right edge
-        if (rect.right > viewportWidth - padding) {
-          adjustedX = x - (rect.right - viewportWidth + padding);
-        }
-        // Check left edge
-        if (rect.left < padding) {
-          adjustedX = x + (padding - rect.left);
-        }
-        
-        if (adjustedX !== x) {
-          setTooltipPos({ x, y, adjustedX });
-        }
-      }
-    });
-  }, [x, y, tooltipElement]);
+    // Final vertical position logic
+    const spaceAbove = targetRect.top;
+    const requiredSpace = tooltip.height + TOOLTIP_OFFSET + padding;
+    const flipped = spaceAbove < requiredSpace;
 
-  return (
+    let top = flipped 
+      ? targetRect.bottom + TOOLTIP_OFFSET 
+      : targetRect.top - TOOLTIP_OFFSET;
+
+    // Viewport bound enforcement (Horizontal)
+    const halfWidth = tooltip.width / 2;
+    if (left - halfWidth < padding) {
+      // Shift right if too far left
+      const idealLeft = left;
+      left = halfWidth + padding;
+      arrowOffset = idealLeft - left;
+    } else if (left + halfWidth > viewportWidth - padding) {
+      // Shift left if too far right
+      const idealLeft = left;
+      left = viewportWidth - halfWidth - padding;
+      arrowOffset = idealLeft - left;
+    }
+
+    setCoords({ top, left, arrowOffset, flipped });
+  }, [targetRect]);
+
+  // Use a portal to render at the top level, avoiding any parent clipping or stacking issues
+  return createPortal(
     <motion.div
-      ref={tooltipElement}
-      initial={{ opacity: 0, scale: 0.9, y: 4 }}
+      ref={tooltipRef}
+      initial={{ opacity: 0, scale: 0.95, y: coords?.flipped ? -4 : 4 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9, y: 4 }}
-      transition={{ duration: 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
+      exit={{ opacity: 0, scale: 0.95, y: coords?.flipped ? -4 : 4 }}
+      transition={{ duration: 0.1, ease: 'easeOut' }}
       style={{
         position: 'fixed',
-        top: tooltipPos.y - TOOLTIP_OFFSET,
-        left: tooltipPos.adjustedX,
-        transform: 'translate(-50%, -100%)',
-        backgroundColor: 'var(--tooltip-bg)',
-        color: 'var(--tooltip-text)',
-        padding: isMobile ? '8px 12px' : '6px 10px',
-        borderRadius: '6px',
-        fontSize: isMobile ? '12px' : '11px',
+        top: coords?.top ?? -1000,
+        left: coords?.left ?? -1000,
+        transform: coords?.flipped ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+        backgroundColor: 'rgba(23, 23, 23, 0.85)',
+        color: '#ffffff',
+        padding: isMobile ? '10px 14px' : '8px 12px',
+        borderRadius: '10px',
+        fontSize: isMobile ? '13px' : '12px',
         pointerEvents: 'none',
         whiteSpace: 'nowrap',
-        zIndex: 10000,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+        zIndex: 99999,
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '2px',
-        backdropFilter: 'blur(4px)',
+        gap: '4px',
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        visibility: coords ? 'visible' : 'hidden'
       }}
     >
-      <div style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>{countStr}</div>
-      <div style={{ opacity: 0.75, fontSize: isMobile ? '11px' : '10px' }}>{dateStr}</div>
-      {/* Arrow pointing down to the tile */}
+      <div style={{ fontWeight: 600, letterSpacing: '-0.02em', color: '#fff' }}>{countStr}</div>
+      <div style={{ opacity: 0.5, fontSize: isMobile ? '12px' : '11px', fontWeight: 500 }}>{dateStr}</div>
+      
+      {/* Dynamic arrow that stays focused on the tile even when tooltip shifts */}
       <div style={{
         position: 'absolute',
-        bottom: '-5px',
-        left: '50%',
-        marginLeft: (tooltipPos.adjustedX - tooltipPos.x),
-        transform: 'translateX(-50%)',
+        [coords?.flipped ? 'top' : 'bottom']: '-5px',
+        left: `calc(50% + ${coords?.arrowOffset ?? 0}px)`,
+        transform: `translateX(-50%) ${coords?.flipped ? 'rotate(180deg)' : ''}`,
         width: 0,
         height: 0,
         borderLeft: '6px solid transparent',
         borderRight: '6px solid transparent',
-        borderTop: '6px solid var(--tooltip-bg)',
+        borderTop: '6px solid rgba(23, 23, 23, 0.85)',
       }} />
-    </motion.div>
+    </motion.div>,
+    document.body
   );
-});
+};
