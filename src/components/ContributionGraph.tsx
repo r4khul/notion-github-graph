@@ -38,13 +38,13 @@ const TOOLTIP_OFFSET = 8;
 // --- SVGs ---
 
 const GithubIcon = () => (
-  <svg height="16" viewBox="0 0 16 16" width="16" fill="white" style={{ flexShrink: 0 }}>
+  <svg height="16" viewBox="0 0 16 16" width="16" fill="currentColor" style={{ flexShrink: 0, color: 'var(--text-color)' }}>
     <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z" />
   </svg>
 );
 
 const ExternalLinkIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.0" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.0" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-color)' }}>
     <line x1="7" y1="17" x2="17" y2="7" />
     <polyline points="7 7 17 7 17 17" />
   </svg>
@@ -625,8 +625,8 @@ const Tooltip: React.FC<TooltipProps> = ({ day, targetRect, isMobile }) => {
         top: coords?.top ?? -1000,
         left: coords?.left ?? -1000,
         transform: coords?.flipped ? 'translateX(-50%)' : 'translate(-50%, -100%)',
-        backgroundColor: 'rgba(23, 23, 23, 0.85)',
-        color: '#ffffff',
+        backgroundColor: 'var(--tooltip-bg)',
+        color: 'var(--tooltip-text)',
         padding: isMobile ? '10px 14px' : '8px 12px',
         borderRadius: '10px',
         fontSize: isMobile ? '13px' : '12px',
@@ -644,8 +644,8 @@ const Tooltip: React.FC<TooltipProps> = ({ day, targetRect, isMobile }) => {
         visibility: coords ? 'visible' : 'hidden'
       }}
     >
-      <div style={{ fontWeight: 600, letterSpacing: '-0.02em', color: '#fff' }}>{countStr}</div>
-      <div style={{ opacity: 0.5, fontSize: isMobile ? '12px' : '11px', fontWeight: 500 }}>{dateStr}</div>
+      <div style={{ fontWeight: 600, letterSpacing: '-0.02em', color: 'inherit' }}>{countStr}</div>
+      <div style={{ opacity: 0.6, fontSize: isMobile ? '12px' : '11px', fontWeight: 500 }}>{dateStr}</div>
       
       {/* Dynamic arrow that stays focused on the tile even when tooltip shifts */}
       <div style={{
@@ -657,7 +657,7 @@ const Tooltip: React.FC<TooltipProps> = ({ day, targetRect, isMobile }) => {
         height: 0,
         borderLeft: '6px solid transparent',
         borderRight: '6px solid transparent',
-        borderTop: '6px solid rgba(23, 23, 23, 0.85)',
+        borderTop: '6px solid var(--tooltip-bg)',
       }} />
     </motion.div>,
     document.body
