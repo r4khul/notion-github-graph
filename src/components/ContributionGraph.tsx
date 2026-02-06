@@ -96,7 +96,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ username }
         const json: ApiData = await res.json();
         setData(json);
       } catch (err) {
-        setError('Could not load data.');
+        setError(err instanceof Error ? err.message : 'Could not load data.');
       } finally {
         setLoading(false);
       }

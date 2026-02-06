@@ -6,49 +6,22 @@ function App() {
 
   useEffect(() => {
     // simple router
+    const base = import.meta.env.BASE_URL;
     const path = window.location.pathname;
-    // We assume the app is hosted at root or a subpath defined in vite config base.
-    // However, for dynamic determination without react-router:
-    // We can check if there's a path segment after the known base.
-    // For local dev, base is likely /.
     
-    // Quick heuristic: take the last non-empty segment.
-    const segments = path.split('/').filter(Boolean);
+    // Remove base path from pathname to get the relative path
+    const relativePath = path.startsWith(base) ? path.slice(base.length) : path;
+    const segments = relativePath.split('/').filter(Boolean);
     
-    // If we are at root, segments might be empty or just ['repo-name'] if on GH pages project site?
-    // This is tricky without predictable routing.
-    // Let's rely on a query param or hash fallback if the path fails?
-    // No, user specifically requested baseurl/username.
-    
-    // Let's assume the username is the LAST segment if there are segments.
-    // BUT if the user is at the homepage of the repo, e.g. /notion-github-graph/, 'notion-github-graph' is the last segment. This is bad.
-    
-    // Let's try to detect if the last segment looks like a username vs the repo name.
-    // Actually, maybe we provide an input field on the home page.
-    // And when the user types a username, we navigate to ./username.
-    
-    // FOR NOW: If we are in dev (localhost), any path is valid.
-    // If in prod, we might need a specific check.
-    
-    // Let's go with: if param 'user' exists, use it. Else use path.
     const params = new URLSearchParams(window.location.search);
     if (params.get('user')) {
       setUsername(params.get('user')!);
       return;
     }
     
-    // Path logic:
-    // If segments > 0 and the last segment is NOT 'index.html'
     if (segments.length > 0) {
       const last = segments[segments.length - 1];
-      // Exclude generic names if needed, but 'rakhul' is a valid username.
-      // We will treat the last segment as username unless it is the repo name (which we might not know easily).
-      // A safe bet: if user visits /notion-github-graph/rakhul, we get rakhul.
-      // If user visits /notion-github-graph/, we might get notion-github-graph.
-      
-      // Let's just USE the last segment. If it happens to be the repo name, the graph will likely fail (User not found) and show error.
-      // We can handle that error gracefully in the UI.
-      if (last !== 'index.html') {
+      if (last !== 'index.html' && last !== 'index') {
          setUsername(last);
       }
     }
@@ -75,7 +48,7 @@ function App() {
             e.preventDefault();
             const input = (e.currentTarget.elements.namedItem('username') as HTMLInputElement).value;
             if (input) {
-               window.location.href = `${window.location.pathname === '/' ? '' : window.location.pathname}/${input}`.replace(/\/\//g, '/');
+               window.location.href = `${import.meta.env.BASE_URL}?user=${input}`.replace(/\/\//g, '/').replace(/\/\?/g, '/?');
             }
           }}
           style={{ display: 'flex', gap: '8px' }}
