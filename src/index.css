@@ -1,0 +1,65 @@
+:root {
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  
+  /* Default Light Mode (Notion-like) */
+  --bg-color: #ffffff; 
+  --text-color: #37352f;
+  --text-secondary: #9b9a97;
+  
+  /* GitHub Light Palette */
+  --color-level-0: #ebedf0;
+  --color-level-1: #9be9a8;
+  --color-level-2: #40c463;
+  --color-level-3: #30a14e;
+  --color-level-4: #216e39;
+
+  --tooltip-bg: #24292f;
+  --tooltip-text: #ffffff;
+  
+  --border-radius-day: 2px;
+  --gap-size: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #191919; /* Notion Dark */
+    --text-color: #d9d9d9;
+    --text-secondary: #737373;
+
+    /* GitHub Dark Palette */
+    --color-level-0: #161b22;
+    --color-level-1: #0e4429;
+    --color-level-2: #006d32;
+    --color-level-3: #26a641;
+    --color-level-4: #39d353;
+    
+    --tooltip-bg: #6e7681;
+    --tooltip-text: #ffffff;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-main);
+  color: var(--text-color);
+  background-color: var(--bg-color); /* Will be transparent in App if needed, but good default */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* Prevent scrollbars globally */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
