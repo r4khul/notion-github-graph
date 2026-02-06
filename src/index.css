@@ -20,8 +20,10 @@
   --color-level-3: #26a641;
   --color-level-4: #39d353;
   
-  --tooltip-bg: #6e7681;
+  --tooltip-bg: rgba(25, 25, 25, 0.4);
   --tooltip-text: #ffffff;
+  --tooltip-border: rgba(255, 255, 255, 0.1);
+  --tooltip-highlight: rgba(255, 255, 255, 0.05);
   
   --btn-text: #000000;
   
@@ -42,8 +44,10 @@
   --color-level-3: #30a14e;
   --color-level-4: #216e39;
 
-  --tooltip-bg: #24292f;
-  --tooltip-text: #ffffff;
+  --tooltip-bg: rgba(255, 255, 255, 0.4);
+  --tooltip-text: #1a1a1a;
+  --tooltip-border: rgba(0, 0, 0, 0.06);
+  --tooltip-highlight: rgba(255, 255, 255, 0.4);
   
   --btn-text: #ffffff;
   

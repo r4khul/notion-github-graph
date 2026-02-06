@@ -33,7 +33,7 @@ const SQUARE_SIZE = 10;
 const GAP = 3;
 const WEEK_WIDTH = SQUARE_SIZE + GAP;
 const GRAPH_HEIGHT = (SQUARE_SIZE + GAP) * 7 - GAP;
-const TOOLTIP_OFFSET = 8;
+const TOOLTIP_OFFSET = 10;
 
 // --- SVGs ---
 
@@ -93,6 +93,46 @@ const processData = (contributions: Contribution[]) => {
   }
   return weeks;
 };
+
+// --- Memoized Components ---
+
+const Tile = React.memo(({ 
+  day, 
+  x, 
+  y, 
+  onMouseEnter, 
+  onMouseLeave, 
+  onTouchStart 
+}: { 
+  day: Contribution; 
+  x: number; 
+  y: number; 
+  onMouseEnter: (e: React.MouseEvent<SVGRectElement>, d: Contribution) => void;
+  onMouseLeave: () => void;
+  onTouchStart: (e: React.TouchEvent<SVGRectElement>, d: Contribution) => void;
+}) => {
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={SQUARE_SIZE}
+      height={SQUARE_SIZE}
+      rx={2}
+      ry={2}
+      fill={`var(--color-level-${day.level})`}
+      style={{ 
+        cursor: 'pointer', 
+        outline: 'none',
+        shapeRendering: 'crispEdges'
+      }}
+      onMouseEnter={(e) => onMouseEnter(e, day)}
+      onMouseLeave={onMouseLeave}
+      onTouchStart={(e) => onTouchStart(e, day)}
+    />
+  );
+});
+
+Tile.displayName = 'Tile';
 
 // --- Component ---
 
@@ -485,22 +525,14 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({ username }
                   {week.map((day, dIndex) => {
                     if (!day) return null;
                     return (
-                      <rect
+                      <Tile
                         key={day.date}
+                        day={day}
                         x={0}
                         y={dIndex * (SQUARE_SIZE + GAP)}
-                        width={SQUARE_SIZE}
-                        height={SQUARE_SIZE}
-                        rx={2}
-                        ry={2}
-                        fill={`var(--color-level-${day.level})`}
-                        style={{ 
-                          cursor: 'pointer', 
-                          outline: 'none'
-                        }}
-                        onMouseEnter={(e) => handleTileMouseEnter(e, day)}
+                        onMouseEnter={handleTileMouseEnter}
                         onMouseLeave={handleTileMouseLeave}
-                        onTouchStart={(e) => handleTileTouch(e, day)}
+                        onTouchStart={handleTileTouch}
                       />
                     );
                   })}
@@ -574,91 +606,85 @@ const Tooltip: React.FC<TooltipProps> = ({ day, targetRect, isMobile }) => {
   const dateStr = format(parseISO(day.date), 'MMM d, yyyy');
   const countStr = day.count === 0 ? 'No contributions' : `${day.count} ${day.count === 1 ? 'contribution' : 'contributions'}`;
 
-  // Production-grade positioning logic: useLayoutEffect to prevent flash of unstyled content/position
+  // Ultra-smooth positioning logic
   React.useLayoutEffect(() => {
     if (!tooltipRef.current) return;
 
-    const tooltip = tooltipRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const padding = 12;
+    const tooltipWidth = 140; // Approximate width for early positioning
 
-    // Ideal position: Centered above the tile
-    let left = targetRect.left + targetRect.width / 2;
-    let arrowOffset = 0;
-    
-    // Final vertical position logic
+    // Ideal position: Centered above/below the tile
+    const left = targetRect.left + targetRect.width / 2;
     const spaceAbove = targetRect.top;
-    const requiredSpace = tooltip.height + TOOLTIP_OFFSET + padding;
-    const flipped = spaceAbove < requiredSpace;
+    const flipped = spaceAbove < 80; // Simple flip threshold
 
-    let top = flipped 
+    const top = flipped 
       ? targetRect.bottom + TOOLTIP_OFFSET 
       : targetRect.top - TOOLTIP_OFFSET;
 
     // Viewport bound enforcement (Horizontal)
-    const halfWidth = tooltip.width / 2;
-    if (left - halfWidth < padding) {
-      // Shift right if too far left
-      const idealLeft = left;
-      left = halfWidth + padding;
-      arrowOffset = idealLeft - left;
-    } else if (left + halfWidth > viewportWidth - padding) {
-      // Shift left if too far right
-      const idealLeft = left;
-      left = viewportWidth - halfWidth - padding;
-      arrowOffset = idealLeft - left;
+    let adjustedLeft = left;
+    if (left - tooltipWidth/2 < padding) {
+      adjustedLeft = tooltipWidth/2 + padding;
+    } else if (left + tooltipWidth/2 > viewportWidth - padding) {
+      adjustedLeft = viewportWidth - tooltipWidth/2 - padding;
     }
 
-    setCoords({ top, left, arrowOffset, flipped });
+    setCoords({ top, left: adjustedLeft, arrowOffset: 0, flipped });
   }, [targetRect]);
 
   // Use a portal to render at the top level, avoiding any parent clipping or stacking issues
   return createPortal(
     <motion.div
       ref={tooltipRef}
-      initial={{ opacity: 0, scale: 0.95, y: coords?.flipped ? -4 : 4 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: coords?.flipped ? -4 : 4 }}
-      transition={{ duration: 0.1, ease: 'easeOut' }}
+      initial={{ opacity: 0, scale: 0.9, y: coords?.flipped ? -10 : 10 }}
+      animate={{ 
+        opacity: 1, 
+        scale: 1, 
+        y: 0,
+        x: '-50%',
+        left: coords?.left ?? 0,
+        top: coords?.top ?? 0
+      }}
+      exit={{ opacity: 0, scale: 0.9, y: coords?.flipped ? -5 : 5 }}
+      transition={{ 
+        type: 'spring', 
+        damping: 25, 
+        stiffness: 400,
+        opacity: { duration: 0.15 }
+      }}
       style={{
         position: 'fixed',
-        top: coords?.top ?? -1000,
-        left: coords?.left ?? -1000,
-        transform: coords?.flipped ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+        transform: coords?.flipped ? 'none' : 'translateY(-100%)',
         backgroundColor: 'var(--tooltip-bg)',
         color: 'var(--tooltip-text)',
         padding: isMobile ? '10px 14px' : '8px 12px',
-        borderRadius: '10px',
+        borderRadius: '12px',
         fontSize: isMobile ? '13px' : '12px',
         pointerEvents: 'none',
         whiteSpace: 'nowrap',
         zIndex: 99999,
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+        boxShadow: `
+          0 12px 32px rgba(0, 0, 0, 0.25), 
+          0 0 0 1px var(--tooltip-border),
+          inset 0 1px 0 var(--tooltip-highlight)
+        `,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '4px',
         backdropFilter: 'blur(12px) saturate(180%)',
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        border: '1px solid var(--tooltip-border)',
+        willChange: 'left, top, opacity, transform',
+        WebkitFontSmoothing: 'antialiased',
+        overflow: 'hidden', // Helps with blurred background clipping
         visibility: coords ? 'visible' : 'hidden'
       }}
     >
       <div style={{ fontWeight: 600, letterSpacing: '-0.02em', color: 'inherit' }}>{countStr}</div>
       <div style={{ opacity: 0.6, fontSize: isMobile ? '12px' : '11px', fontWeight: 500 }}>{dateStr}</div>
-      
-      {/* Dynamic arrow that stays focused on the tile even when tooltip shifts */}
-      <div style={{
-        position: 'absolute',
-        [coords?.flipped ? 'top' : 'bottom']: '-5px',
-        left: `calc(50% + ${coords?.arrowOffset ?? 0}px)`,
-        transform: `translateX(-50%) ${coords?.flipped ? 'rotate(180deg)' : ''}`,
-        width: 0,
-        height: 0,
-        borderLeft: '6px solid transparent',
-        borderRight: '6px solid transparent',
-        borderTop: '6px solid var(--tooltip-bg)',
-      }} />
     </motion.div>,
     document.body
   );
