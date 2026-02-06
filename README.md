@@ -2,6 +2,19 @@
 
 A minimal, aesthetic contribution graph designed for Notion. It fetches your GitHub activity and renders it as a crisp heatmap that matches Notion's native UI perfectly.
 
+### [**Live Demo →**](https://r4khul.github.io/notion-github-graph/)
+
+---
+
+### Preview
+
+| Dark Mode (Default)                      | Light Mode                                      |
+| :--------------------------------------- | :---------------------------------------------- |
+| ![Dark Mode Graph](./docs/gen-graph.png) | ![Light Mode Graph](./docs/gen-graph-white.png) |
+| ![Dark Mode UI](./docs/main-page.png)    | ![Light Mode UI](./docs/main-page-white.png)    |
+
+---
+
 This project vibe coded itself.
 
 ### Why this?
