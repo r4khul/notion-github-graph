@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Notion GitHub Graph - Redirecting...</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #000;
+        color: #fff;
+        margin: 0;
+      }
+      .loader {
+        border: 2px solid #333;
+        border-top: 2px solid #fff;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        margin-right: 12px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script type="text/javascript">
+      // GitHub Pages SPA Hack to handle path-based URLs
+      var path = window.location.pathname;
+      var repoName = "/notion-github-graph/";
+
+      // Strip trailing slash for comparison
+      var normalizedPath = path.replace(/\/$/, "");
+      var normalizedRepo = repoName.replace(/\/$/, "");
+
+      // Get the relative path after the repo name
+      var relativePath = path.startsWith(repoName)
+        ? path.slice(repoName.length)
+        : path;
+      var segments = relativePath.split("/").filter(Boolean);
+      var username = segments[0];
+
+      if (username && username !== "index.html" && username !== "index") {
+        window.location.replace(repoName + "?user=" + username);
+      } else {
+        window.location.replace(repoName);
+      }
+    </script>
+  </head>
+  <body>
+    <div class="loader"></div>
+    <p>Redirecting to graph...</p>
+    <script>
+      // Fallback if JS redirect fails immediately
+      setTimeout(function () {
+        document.body.innerHTML +=
+          '<br><a href="/notion-github-graph/" style="color: #0088ff; text-decoration: none; margin-top: 10px;">Click here if not redirected</a>';
+      }, 3000);
+    </script>
+  </body>
+</html>
