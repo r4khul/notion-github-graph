@@ -5,12 +5,18 @@ function App() {
   const [username, setUsername] = useState<string>('');
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Handle Theme
+    const theme = params.get('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+
+    // Handle Username
     const base = import.meta.env.BASE_URL;
     const path = window.location.pathname;
     const relativePath = path.startsWith(base) ? path.slice(base.length) : path;
     const segments = relativePath.split('/').filter(Boolean);
     
-    const params = new URLSearchParams(window.location.search);
     if (params.get('user')) {
       setUsername(params.get('user')!);
       return;

@@ -1,7 +1,34 @@
 :root {
   --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   
-  /* Default Light Mode (Notion-like) */
+  --border-radius-day: 2px;
+  --gap-size: 3px;
+  --scrollbar-track: transparent;
+}
+
+/* Default Theme (Dark Notion-like) */
+:root,
+[data-theme="dark"] {
+  --bg-color: #191919; 
+  --text-color: #d9d9d9;
+  --text-secondary: #737373;
+
+  /* GitHub Dark Palette */
+  --color-level-0: #161b22;
+  --color-level-1: #0e4429;
+  --color-level-2: #006d32;
+  --color-level-3: #26a641;
+  --color-level-4: #39d353;
+  
+  --tooltip-bg: #6e7681;
+  --tooltip-text: #ffffff;
+  
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* Light Theme (Notion-like) */
+[data-theme="light"] {
   --bg-color: #ffffff; 
   --text-color: #37352f;
   --text-secondary: #9b9a97;
@@ -16,35 +43,8 @@
   --tooltip-bg: #24292f;
   --tooltip-text: #ffffff;
   
-  --border-radius-day: 2px;
-  --gap-size: 3px;
-  
-  /* Scrollbar Colors */
-  --scrollbar-track: transparent;
   --scrollbar-thumb: rgba(0, 0, 0, 0.15);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #191919; /* Notion Dark */
-    --text-color: #d9d9d9;
-    --text-secondary: #737373;
-
-    /* GitHub Dark Palette */
-    --color-level-0: #161b22;
-    --color-level-1: #0e4429;
-    --color-level-2: #006d32;
-    --color-level-3: #26a641;
-    --color-level-4: #39d353;
-    
-    --tooltip-bg: #6e7681;
-    --tooltip-text: #ffffff;
-    
-    /* Dark Scrollbar Colors */
-    --scrollbar-thumb: rgba(255, 255, 255, 0.15);
-    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
-  }
 }
 
 *,
