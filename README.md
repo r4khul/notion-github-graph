@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# Notion GitHub Graph
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimal, aesthetic contribution graph designed for Notion. It fetches your GitHub activity and renders it as a crisp heatmap that matches Notion's native UI perfectly.
 
-Currently, two official plugins are available:
+This project vibe coded itself.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Why this?
 
-## React Compiler
+Most GitHub graph generators are cluttered or don't look right when embedded. This one is built to be "invisible"—it adapts to Notion's light and dark modes, uses clean typography, and sticks to a minimal footprint.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Features
 
-## Expanding the ESLint configuration
+- **Auto-Theming**: Automatically switches between light and dark modes based on system/Notion settings.
+- **Precision Tooltips**: Shows exact contribution counts on hover or tap. The positioning is smart—it won't get cut off at the edges.
+- **Yearly Navigation**: Interactive controls to jump back through your history or view the last 365 days.
+- **Mobile First**: Fully responsive with optimized touch targets for dragging through the graph on your phone.
+- **Zero Config**: Just pass a username and it works.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### How to use
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+The easiest way is to use the hosted version: `https://r4khul.github.io/notion-github-graph/`
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**Quick Embed:**
+You can just add your username to the end of the URL:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- `https://r4khul.github.io/notion-github-graph/YOUR_USERNAME`
+- Or use the parameter: `https://r4khul.github.io/notion-github-graph/?user=YOUR_USERNAME`
+
+**In Notion:**
+
+1. Copy the link with your username.
+2. In your Notion page, type `/embed`.
+3. Paste the URL and hit enter.
+4. Resize the block to your liking.
+
+### Local Development
+
+If you want to run it yourself or tweak the styles:
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Options
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Username**: Set via the `user` URL parameter.
+- **Theme**: Follows your system `prefers-color-scheme`.
+- **Navigation**: Use the arrows in the header to cycle through available years of data.
